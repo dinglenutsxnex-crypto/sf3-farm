@@ -46,7 +46,7 @@ fun main(args: Array<String>) {
     runBlocking {
         val jobs = accs.map { a ->
             launch(Dispatchers.IO) {
-                val sess = DuelSession(a.guid, a.sysid, hosts?.firstOrNull() ?: a.host.ifEmpty { Regions.ALL[0].hosts[0] }, wins, mode) { p ->
+                val sess = DuelSession(a.guid, a.sysid, hosts?.firstOrNull() ?: a.host.ifEmpty { Regions.ALL[0].hosts[0] }, wins.toLong(), mode) { p ->
                     synchronized(lock) {
                         states[a.guid]?.let {
                             it.serverWins = p.serverWins; it.fails = p.fails
