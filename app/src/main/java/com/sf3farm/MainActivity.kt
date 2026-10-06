@@ -138,14 +138,13 @@ class MainActivity : AppCompatActivity() {
         }
         val regionRaw = spRegion.selectedItem as String
         val region = if (regionRaw == "as listed") null else regionRaw
-        val wins = etWins.text.toString().toLongOrNull()?.toInt() ?: 0
+        val wins = etWins.text.toString().toLongOrNull() ?: 0L
         val mode = if ((spMode.selectedItem as String) == "loss") DuelOutcome.LOSS else DuelOutcome.WIN
         if (Build.VERSION.SDK_INT >= 26) {
             startForegroundService(Intent(this, FarmService::class.java))
         } else {
             startService(Intent(this, FarmService::class.java))
         }
-        FarmRunner.prefs?.resetAllRun()
         FarmRunner.start(region, wins, mode)
         Toast.makeText(this, "grinding started", Toast.LENGTH_SHORT).show()
     }
