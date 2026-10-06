@@ -7,9 +7,6 @@ import farm.core.FarmAccount
 import farm.core.Regions
 import farm.core.Sf3Conn
 import farm.core.boardRows
-import farm.core.fbytes
-import farm.core.fl
-import farm.core.flong
 import farm.core.rankOf
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -135,8 +132,9 @@ object FarmRunner {
                 boardHost = ui.acct.host
             }
             val r = boardConn!!.call("get_leaderboards", farm.core.Proto.msg { vint(1, 322L) })
-            if (r.err != null || r.payload == null) throw IllegalStateException("lb err=${r.err}")
-            val rows = boardRows(r.payload)
+            val pay = r.payload
+            if (r.err != null || pay == null) throw IllegalStateException("lb err=${r.err}")
+            val rows = boardRows(pay)
             val names = _accounts.value.map { it.acct.name.lowercase() }.toSet()
             _accounts.value = _accounts.value.map { a ->
                 a.copy(rank = if (a.acct.name.lowercase() in names) rankOf(rows, a.acct.name) else a.rank)
