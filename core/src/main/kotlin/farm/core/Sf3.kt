@@ -56,13 +56,13 @@ object Sf3 {
 }
 
 /** Safe field-list accessor. */
-private fun fl(m: Map<Int, List<Any>>, f: Int): List<Any> {
+internal fun fl(m: Map<Int, List<Any>>, f: Int): List<Any> {
     @Suppress("UNCHECKED_CAST")
     return (m[f] as? List<Any>) ?: emptyList()
 }
 
-private fun flong(m: Map<Int, List<Any>>, f: Int, i: Int = 0): Long? = fl(m, f).getOrNull(i) as? Long
-private fun fbytes(m: Map<Int, List<Any>>, f: Int, i: Int = 0): ByteArray? = fl(m, f).getOrNull(i) as? ByteArray
+internal fun flong(m: Map<Int, List<Any>>, f: Int, i: Int = 0): Long? = fl(m, f).getOrNull(i) as? Long
+internal fun fbytes(m: Map<Int, List<Any>>, f: Int, i: Int = 0): ByteArray? = fl(m, f).getOrNull(i) as? ByteArray
 
 data class PlayerMini(
     val stateId: Long,
