@@ -45,7 +45,8 @@ class MainActivity : AppCompatActivity() {
         spRegion = findViewById(R.id.sp_region)
         spMode = findViewById(R.id.sp_mode)
         etWins = findViewById(R.id.et_wins)
-        etWins.setText("100")
+        etWins.setText("1100")
+        etWins.hint = "absolute total wins (0=inf)"
 
         spRegion.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item,
             listOf("as listed") + Regions.ALL.map { it.name }).apply {
@@ -62,6 +63,19 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btn_start).setOnClickListener { startRun() }
         findViewById<Button>(R.id.btn_stop).setOnClickListener { stopRun() }
 
+        lifecycleScope.launch {
+            FarmRunner.totals.collectLatest { t ->
+                val bar: android.widget.ProgressBar = findViewById(R.id.pb_total)
+                if (t.target > 0) {
+                    bar.max = 1000
+                    bar.progress = ((t.wins.toDouble() / t.target.toDouble()) * 1000).toInt().coerceIn(0, 1000)
+                } else {
+                    bar.isIndeterminate = t.running
+                }
+                findViewById<TextView>(R.id.tv_total).text =
+                    "TOTAL ${t.wins}/${if (t.target > 0) t.target else "inf"}  ${"%.0f".format(t.perMin)}/min"
+            }
+        }
         lifecycleScope.launch {
             FarmRunner.accounts.collectLatest { list ->
                 adapter.submit(list)

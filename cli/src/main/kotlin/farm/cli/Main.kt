@@ -17,12 +17,12 @@ fun main(args: Array<String>) {
         when (args[i]) {
             "--csv" -> csv = args.getOrElse(++i) { "" }
             "--region" -> region = args.getOrElse(++i) { null }.takeUnless { it == "all" }
-            "--wins" -> wins = args.getOrElse(++i) { "100" }.toIntOrNull() ?: 100
+            "--wins" -> wins = args.getOrElse(++i) { "1100" }.toIntOrNull() ?: 1100
             "--mode" -> mode = if (args.getOrElse(++i) { "win" } == "loss") DuelOutcome.LOSS else DuelOutcome.WIN
             "--board-id" -> boardId = args.getOrElse(++i) { "322" }.toLongOrNull() ?: 322L
             "--board-every-s" -> boardEvery = args.getOrElse(++i) { "5" }.toLongOrNull() ?: 5L
             "--help", "-h" -> {
-                println("usage: sf3farm-cli --csv FILE [--region Mumbai|Tokyo|US|EU|all] [--wins N] [--mode win|loss] [--board-id 322] [--board-every-s 5]")
+                println("usage: sf3farm-cli --csv FILE [--region Mumbai|Tokyo|US|EU|all] [--wins ABSOLUTE_TOTAL] [--mode win|loss] [--board-id 322] [--board-every-s 5]")
                 return
             }
         }
@@ -49,7 +49,7 @@ fun main(args: Array<String>) {
                 val sess = DuelSession(a.guid, a.sysid, hosts?.firstOrNull() ?: a.host.ifEmpty { Regions.ALL[0].hosts[0] }, wins, mode) { p ->
                     synchronized(lock) {
                         states[a.guid]?.let {
-                            it.wins = p.wins; it.fails = p.fails
+                            it.serverWins = p.serverWins; it.fails = p.fails
                             it.rating = p.rating; it.status = p.status
                         }
                     }
@@ -113,7 +113,7 @@ private suspend fun monitor(
         synchronized(lock) {
             val done = states.values.count { it.status == "target reached" || it.status == "stopped" }
             println("[${jobs.count { it.isCompleted }}/  accs done] " + states.values.joinToString(" ") {
-                "${it.name.take(8)}:${it.wins}w/${it.fails}f"
+                "${it.name.take(8)}:${it.serverWins}w/${it.fails}f"
             }.take(300))
             if (jobs.all { it.isCompleted } || done == accs.size) {
                 board.cancel()

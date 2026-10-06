@@ -35,7 +35,7 @@ class AccountAdapter(
         h.cb.isChecked = a.acct.selected
         h.cb.text = a.acct.name.ifEmpty { a.acct.guid.take(8) }
         val rank = a.rank?.let { "#$it" } ?: "-"
-        h.tv.text = "wins=${a.wins} fails=${a.fails} rating=${a.rating ?: "-"} rank=$rank ${a.status}"
+        h.tv.text = "total=${a.wins} (+${a.runWins} run) fails=${a.fails} rating=${a.rating ?: "-"} rank=$rank ${a.status}"
         h.cb.setOnCheckedChangeListener { _, sel -> onToggle(a.acct.guid, sel) }
     }
 }
