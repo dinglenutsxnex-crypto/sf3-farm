@@ -73,8 +73,9 @@ fun main(args: Array<String>) {
                         bg = a.guid
                     }
                     val r = conn!!.call("get_leaderboards", Proto.msg { vint(1, boardId) })
-                    if (r.err == null && r.payload != null) {
-                        val rows = boardRows(r.payload)
+                    val rpay = r.payload
+                    if (r.err == null && rpay != null) {
+                        val rows = boardRows(rpay)
                         synchronized(lock) {
                             println("--- board ${rows.size} rows ---")
                             rows.take(10).forEachIndexed { k, row ->
@@ -92,25 +93,33 @@ fun main(args: Array<String>) {
                 }
             }
         }
-        while (isActive) {
-            delay(5000)
-            synchronized(lock) {
-                val done = states.values.count { it.status == "target reached" || it.status == "stopped" }
-                println("[${jobs.count { it.isCompleted }}/  accs done] " + states.values.joinToString(" ") {
-                    "${it.name.take(8)}:${it.wins}w/${it.fails}f"
-                }.take(300))
-                if (jobs.all { it.isCompleted }) {
-                    board.cancel()
-                    break
-                }
-                if (done == accs.size) {
-                    board.cancel()
-                    break
-                }
-            }
-        }
+        monitor(jobs, board, states, lock, accs)
         board.cancelAndJoin()
         try { jobs.forEach { it.cancelAndJoin() } } catch (_: Exception) {}
     }
     println("finished")
+}
+
+private suspend fun monitor(
+    jobs: List<kotlinx.coroutines.Job>,
+    board: kotlinx.coroutines.Job,
+    states: Map<String, farm.core.DuelProgress>,
+    lock: Any,
+    accs: List<farm.core.FarmAccount>,
+) {
+    while (true) {
+        kotlinx.coroutines.delay(5000)
+        var allDone = false
+        synchronized(lock) {
+            val done = states.values.count { it.status == "target reached" || it.status == "stopped" }
+            println("[${jobs.count { it.isCompleted }}/  accs done] " + states.values.joinToString(" ") {
+                "${it.name.take(8)}:${it.wins}w/${it.fails}f"
+            }.take(300))
+            if (jobs.all { it.isCompleted } || done == accs.size) {
+                board.cancel()
+                allDone = true
+            }
+        }
+        if (allDone) break
+    }
 }
