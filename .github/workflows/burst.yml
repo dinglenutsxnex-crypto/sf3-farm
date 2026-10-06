@@ -1,0 +1,44 @@
+name: Duel burst (multi-IP)
+
+on:
+  workflow_dispatch:
+    inputs:
+      minutes:
+        description: 'Burst length per worker (minutes)'
+        default: '15'
+        required: true
+      max_wins:
+        description: 'Stop after this many wins per worker (0 = time only)'
+        default: '0'
+        required: false
+
+jobs:
+  burst:
+    name: burst worker ${{ matrix.idx }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        idx: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run duel burst
+        env:
+          FARM_ACCOUNTS_JSON: ${{ secrets.FARM_ACCOUNTS }}
+        run: python3 workers/duel_burst.py --slot ${{ matrix.idx }} --minutes ${{ inputs.minutes }} --max-wins ${{ inputs.max_wins }} 2>&1 | tee burst-${{ matrix.idx }}.log
+
+      - name: Upload worker log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: burst-idx-${{ matrix.idx }}
+          path: ${{ github.workspace }}/burst-${{ matrix.idx }}.log
+          retention-days: 7
