@@ -36,7 +36,7 @@ jobs:
         run: ./gradlew :app:assembleDebug --no-daemon
 
       - name: Build CLI distribution
-        run: ./gradlew :cli:installDist --no-daemon && (cd cli/build/install/cli && zip -qr $GITHUB_WORKSPACE/sf3farm-cli.zip sf3farm-cli)
+        run: ./gradlew :cli:installDist --no-daemon && (cd cli/build/install && zip -qr $GITHUB_WORKSPACE/sf3farm-cli.zip cli)
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
